@@ -18,10 +18,7 @@ import (
 var errNonNilContext = errors.New("context must be non-nil")
 
 const (
-	Version = "v48.2.0"
-
-	mediaTypeV3           = "application/json"
-	headerTokenExpiration = "GitHub-Authentication-Token-Expiration"
+	mediaTypeV3 = "application/json"
 )
 
 type BasicAuth struct {
