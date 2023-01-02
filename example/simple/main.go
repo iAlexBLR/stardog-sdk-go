@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	client := stardog.NewClient(nil, "http://localhost:5820/")
+	client := stardog.NewClient(nil, "http://127.0.0.1:5820/")
 	client.SetBasicAuth("admin", "admin")
 
 	_, err := client.Users.List(context.Background())

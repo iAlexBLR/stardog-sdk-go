@@ -34,7 +34,5 @@ func (s *UsersService) List(ctx context.Context) (*Response, error) {
 		return resp, err
 	}
 
-	fmt.Println(users.Users)
-
 	return resp, nil
 }

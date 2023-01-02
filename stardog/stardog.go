@@ -18,7 +18,8 @@ import (
 var errNonNilContext = errors.New("context must be non-nil")
 
 const (
-	mediaTypeV3 = "application/json"
+	mediaTypeV3    = "application/json"
+	defaultBaseURL = "http://localhost:5820/"
 )
 
 type BasicAuth struct {
@@ -58,14 +59,18 @@ func (c *Client) Client() *http.Client {
 	return &clientCopy
 }
 
-func NewClient(httpClient *http.Client, defaultBaseURL string) *Client {
+func NewClient(httpClient *http.Client, baseURL string) *Client {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
 
-	baseURL, _ := url.Parse(defaultBaseURL)
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
 
-	c := &Client{client: httpClient, BaseURL: baseURL}
+	parsedBaseURL, _ := url.Parse(baseURL)
+
+	c := &Client{client: httpClient, BaseURL: parsedBaseURL}
 	c.common.client = c
 	c.Users = (*UsersService)(&c.common)
 
