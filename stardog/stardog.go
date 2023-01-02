@@ -17,19 +17,8 @@ import (
 
 var errNonNilContext = errors.New("context must be non-nil")
 
-type rateLimitCategory uint8
-
 const (
 	Version = "v48.2.0"
-
-	defaultBaseURL = "https://api.github.com/"
-	// defaultUserAgent = "go-github" + "/" + Version
-	uploadBaseURL = "https://uploads.github.com/"
-
-	headerRateLimit     = "X-RateLimit-Limit"
-	headerRateRemaining = "X-RateLimit-Remaining"
-	headerRateReset     = "X-RateLimit-Reset"
-	headerOTP           = "X-GitHub-OTP"
 
 	mediaTypeV3           = "application/json"
 	headerTokenExpiration = "GitHub-Authentication-Token-Expiration"
@@ -45,22 +34,18 @@ type Client struct {
 	clientMu sync.Mutex
 	client   *http.Client
 
+	// Basic URL used when communicating with the Stardog API.
 	BaseURL *url.URL
-
-	// Base URL for uploading files.
-	UploadURL *url.URL
 
 	// User agent used when communicating with the Stardog API.
 	UserAgent string
-
-	rateMu sync.Mutex
-	// rateLimits [categories]Rate // Rate limits for the client as determined by the most recent API calls.
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
 	// Services used for talking to different parts of the Stardog API.
 	Users *UsersService
 
+	// Basic auth used for setting authentification
 	BasicAuth *BasicAuth
 }
 
@@ -68,7 +53,7 @@ type service struct {
 	client *Client
 }
 
-// Client returns the http.Client used by this GitHub client.
+// Client returns the http.Client used by this Stardog client.
 func (c *Client) Client() *http.Client {
 	c.clientMu.Lock()
 	defer c.clientMu.Unlock()
@@ -82,9 +67,8 @@ func NewClient(httpClient *http.Client, defaultBaseURL string) *Client {
 	}
 
 	baseURL, _ := url.Parse(defaultBaseURL)
-	uploadURL, _ := url.Parse(uploadBaseURL)
 
-	c := &Client{client: httpClient, BaseURL: baseURL, UploadURL: uploadURL}
+	c := &Client{client: httpClient, BaseURL: baseURL}
 	c.common.client = c
 	c.Users = (*UsersService)(&c.common)
 
@@ -289,28 +273,6 @@ func (r *Response) populatePageValues() {
 				}
 			}
 		}
-	}
-}
-
-const (
-	coreCategory rateLimitCategory = iota
-	searchCategory
-	graphqlCategory
-	integrationManifestCategory
-	sourceImportCategory
-	codeScanningUploadCategory
-	actionsRunnerRegistrationCategory
-	scimCategory
-
-	categories // An array of this length will be able to contain all rate limit categories.
-)
-
-func category(path string) rateLimitCategory {
-	switch {
-	default:
-		return coreCategory
-	case strings.HasPrefix(path, "/search/"):
-		return searchCategory
 	}
 }
 
