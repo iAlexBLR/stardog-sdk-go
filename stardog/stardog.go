@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var errNonNilContext = errors.New("context must be non-nil")
@@ -60,20 +62,29 @@ func (c *Client) Client() *http.Client {
 }
 
 func NewClient(httpClient *http.Client, baseURL string) *Client {
+	logger, _ := zap.NewDevelopment()
+	defer logger.Sync()
+
 	if httpClient == nil {
 		httpClient = &http.Client{}
+		logger.Info("HTTP client not provided, using default client.")
 	}
 
 	if baseURL == "" {
 		baseURL = defaultBaseURL
+		logger.Info("Base URL not provided, using default URL: %s", zap.String("url", baseURL))
 	}
 
-	parsedBaseURL, _ := url.Parse(baseURL)
+	parsedBaseURL, err := url.Parse(baseURL)
+	if err != nil {
+		logger.Fatal("Error parsing base URL", zap.Error(err))
+	}
 
 	c := &Client{client: httpClient, BaseURL: parsedBaseURL}
 	c.common.client = c
 	c.Users = (*UsersService)(&c.common)
 
+	logger.Info("New client created successfully.")
 	return c
 }
 
